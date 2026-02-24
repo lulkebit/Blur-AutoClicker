@@ -1,3 +1,8 @@
+# v2.1.0 - 24.02.2026 (d/m/y)
+## 🔺 Fix:
+- CPU logging does not report 0.0% value if no samples are made (previously lowered average cpu usage artificially)
+- CPU logging frequency is dynamic, making the averages more accurate at lower runtimes.
+
 # v2.1.0 - 23.02.2026 (d/m/y)
 ## ❇️ New Features:
 - Added Opt-in Telemetry Popup (Honestly didn't wanna do that but EU laws and stuff :3)
