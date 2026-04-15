@@ -47,5 +47,156 @@ jobs:
       - name: Check Rust backend
         run: cargo check --manifest-path src-tauri/Cargo.toml
 
-      - name: Build Tauri app
+      - name: Build Tauri app for pull requests
+        if: github.event_name == 'pull_request'
         run: npm exec tauri build -- --no-bundle --ci
+
+      - name: Build Windows installer
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'Windows'
+        run: npm exec tauri build -- --config src-tauri/tauri.windows.release.conf.json --ci
+
+      - name: Build macOS DMG
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'macOS'
+        run: npm exec tauri build -- --config src-tauri/tauri.macos.release.conf.json --ci
+
+      - name: Upload Windows release asset
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-windows
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+      - name: Upload macOS release asset
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-macos
+          path: src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Extract release metadata from changelog
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          first_heading="$(grep -m1 '^# v' CHANGELOG.md || true)"
+          if [[ -z "$first_heading" ]]; then
+            echo "The changelog does not start with a release heading like '# v1.2.3'." >&2
+            exit 1
+          fi
+
+          version="$(sed -E 's/^# (v[^ ]+).*/\1/' <<<"$first_heading")"
+          title="${first_heading#\# }"
+
+          awk '
+            /^# v/ {
+              seen_versions += 1
+              if (seen_versions > 1) {
+                exit
+              }
+              next
+            }
+            seen_versions == 1 {
+              print
+            }
+          ' CHANGELOG.md > release-notes.md
+
+          perl -0pi -e 's/\A\s+//; s/\s+\z/\n/' release-notes.md
+
+          if [[ ! -s release-notes.md ]]; then
+            echo "The latest changelog entry has no release notes." >&2
+            exit 1
+          fi
+
+          {
+            echo "version=$version"
+            echo "title=$title"
+            echo "notes_path=release-notes.md"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check whether the release version already exists
+        id: release_state
+        uses: actions/github-script@v7
+        env:
+          RELEASE_TAG: ${{ steps.changelog.outputs.version }}
+        with:
+          script: |
+            const tag = process.env.RELEASE_TAG;
+
+            let releaseExists = false;
+            let tagExists = false;
+
+            try {
+              await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag
+              });
+              releaseExists = true;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            try {
+              await github.rest.git.getRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `tags/${tag}`
+              });
+              tagExists = true;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            const shouldRelease = !releaseExists && !tagExists;
+
+            core.setOutput('release_exists', String(releaseExists));
+            core.setOutput('tag_exists', String(tagExists));
+            core.setOutput('should_release', String(shouldRelease));
+
+      - name: Download release assets
+        if: steps.release_state.outputs.should_release == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub release
+        if: steps.release_state.outputs.should_release == 'true'
+        uses: softprops/action-gh-release@v2.6.2
+        with:
+          tag_name: ${{ steps.changelog.outputs.version }}
+          name: ${{ steps.changelog.outputs.title }}
+          body_path: ${{ steps.changelog.outputs.notes_path }}
+          files: |
+            release-assets/*.exe
+            release-assets/*.dmg
+          fail_on_unmatched_files: true
+          target_commitish: ${{ github.sha }}
+
+      - name: Report skipped release
+        if: steps.release_state.outputs.should_release != 'true'
+        shell: bash
+        run: |
+          echo "Skipping release for ${{ steps.changelog.outputs.version }}."
+          echo "release_exists=${{ steps.release_state.outputs.release_exists }}"
+          echo "tag_exists=${{ steps.release_state.outputs.tag_exists }}"
