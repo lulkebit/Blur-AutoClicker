@@ -217,7 +217,7 @@ export default function SettingsPanel({
               </div>
               <div className="stats-cell">
                 <span className="stats-cell-label">
-                  CPU Usage avg (while running)
+                  CPU Usage avg
                 </span>
                 <span className="stats-cell-value">
                   {formatCpu(stats.avgCpu)}
