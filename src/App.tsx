@@ -327,6 +327,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme ?? "dark";
+  }, [settings.theme]);
+
   const handleTabChange = (nextTab: Tab) => {
     setTab(nextTab);
 

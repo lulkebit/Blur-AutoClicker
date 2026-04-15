@@ -306,7 +306,7 @@ pub fn start_clicker(config: ClickerConfig, running: Arc<AtomicBool>) -> RunOutc
         }
 
         let batch_duration = if config.variation > 0.0 {
-            let std_dev = batch_interval * (config.variation / 100.0) * 0.5;
+            let std_dev = batch_interval * (config.variation / 100.0);
             rng.next_gaussian(batch_interval, std_dev)
         } else {
             batch_interval

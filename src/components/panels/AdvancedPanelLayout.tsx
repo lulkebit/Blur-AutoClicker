@@ -417,26 +417,26 @@ export default function AdvancedPanelLayout({
                 <span className="adv-card-title">Time Limit</span>
                 <div className="adv-row" style={{ gap: 6 }}>
                   <Disableable enabled={settings.timeLimitEnabled}>
-                    <div className="adv-numbox-sm">
-                      <NumInput
-                        value={settings.timeLimit}
-                        onChange={(v) => update({ timeLimit: v })}
-                        min={1}
-                        style={{ width: "38px", textAlign: "right" }}
-                      />
-                    </div>
-                  </Disableable>
-                  <Disableable enabled={settings.timeLimitEnabled}>
-                    <div className="simple-seg-group">
-                      {(["s", "m", "h"] as const).map((u) => (
-                        <button
-                          key={u}
-                          className={`simple-seg-btn ${settings.timeLimitUnit === u ? "active" : ""}`}
-                          onClick={() => update({ timeLimitUnit: u })}
-                        >
-                          {u}
-                        </button>
-                      ))}
+                    <div className="adv-row" style={{ gap: 6 }}>
+                      <div className="adv-numbox-sm">
+                        <NumInput
+                          value={settings.timeLimit}
+                          onChange={(v) => update({ timeLimit: v })}
+                          min={1}
+                          style={{ width: "38px", textAlign: "right" }}
+                        />
+                      </div>
+                      <div className="simple-seg-group">
+                        {(["s", "m", "h"] as const).map((u) => (
+                          <button
+                            key={u}
+                            className={`simple-seg-btn ${settings.timeLimitUnit === u ? "active" : ""}`}
+                            onClick={() => update({ timeLimitUnit: u })}
+                          >
+                            {u}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </Disableable>
                   <ToggleBtn

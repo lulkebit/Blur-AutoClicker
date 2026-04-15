@@ -1,4 +1,13 @@
-# v3.3.0 - ..202 (d.m.y)
+# v3.4.0 - 15.05.2026 (d.m.y)
+## ❇️ New:
+- Added Light Mode
+- Added support for Mouse Buttons
+## 🔹 Changed:
+- Added vertical bars to Simple mode Hold and Randomization fields for consistency.
+## 🔺 Fix:
+- Fixed Time Limit hover card being split in 2
+
+# v3.3.0 - 14.04.2026 (d.m.y)
 ## ❇️ New:
 - added Github link icon
 - added Scroll bar for settings page
@@ -10,12 +19,11 @@
 ## 🔺 Fix:
 - Fixed double click on top bar maximizing the window.
 - Speed Variation not graying out when off
-## 🔸 Performance Updates:
-
+- Speed Variation should act more like intended
 ## 🪦 Removed:
 - Removed Telemetry. Your local data will also be reset but it is what it is
 - Duty Cycle On/Off button
-- Local Key generation for stats (if you want to make your own fake stats, go ahead ig)
+- Local verification for stats (if you want to make your own fake stats, go ahead ig)
 
 # v3.2.0 - 11.04.2026 (d.m.y)
 ## ❇️ New Features:

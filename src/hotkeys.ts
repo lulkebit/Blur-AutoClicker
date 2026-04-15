@@ -65,6 +65,26 @@ function normalizeNamedKey(key: string): string | null {
     arrowdown: "down",
     arrowleft: "left",
     arrowright: "right",
+    // Mouse buttons
+    mouseleft: "mouseleft",
+    mouse1: "mouseleft",
+    mouseright: "mouseright",
+    mouse2: "mouseright",
+    mousemiddle: "mousemiddle",
+    mouse3: "mousemiddle",
+    scrollbutton: "mousemiddle",
+    middleclick: "mousemiddle",
+    mouse4: "mouse4",
+    mouseback: "mouse4",
+    xbutton1: "mouse4",
+    mouse5: "mouse5",
+    mouseforward: "mouse5",
+    xbutton2: "mouse5",
+    // Scroll wheel
+    scrollup: "scrollup",
+    wheelup: "scrollup",
+    scrolldown: "scrolldown",
+    wheeldown: "scrolldown",
   };
 
   if (/^f\d{1,2}$/i.test(key)) {
@@ -110,6 +130,15 @@ function displayTokenFromStoredValue(token: string, layoutMap: LayoutMapLike | n
     space: "Space",
     escape: "Esc",
     esc: "Esc",
+    // Mouse buttons
+    mouseleft: "Mouse Left",
+    mouseright: "Mouse Right",
+    mousemiddle: "Scroll Button",
+    mouse4: "Mouse Back",
+    mouse5: "Mouse Forward",
+    // Scroll wheel
+    scrollup: "Scroll Up",
+    scrolldown: "Scroll Down",
   };
 
   if (namedDisplayMap[lower]) {
@@ -186,6 +215,71 @@ export function captureHotkey(event: {
     (SHIFTED_SYMBOL_BASE_MAP[event.key] ?? (event.key.length === 1 ? lower : null));
 
   if (!mainKey) return null;
+
+  const parts: string[] = [];
+  if (event.ctrlKey) parts.push("ctrl");
+  if (event.altKey) parts.push("alt");
+  if (event.shiftKey) parts.push("shift");
+  if (event.metaKey) parts.push("super");
+  parts.push(mainKey);
+  return parts.join("+");
+}
+
+/**
+ * Capture a mouse button (middle, right, side-buttons) as a hotkey.
+ * Returns null for left-click (button 0) since that's used for UI interaction,
+ * and null for plain right-click (button 2) to avoid context-menu confusion.
+ */
+export function captureMouseHotkey(event: {
+  button: number;
+  ctrlKey: boolean;
+  altKey: boolean;
+  shiftKey: boolean;
+  metaKey: boolean;},
+  clickerMouseButton?: string 
+): string | null {
+  const mouseMap: Record<number, string> = {
+    0: "mouseleft",
+    1: "mousemiddle",
+    2: "mouseright",
+    3: "mouse4",
+    4: "mouse5",
+  };
+
+  const mainKey = mouseMap[event.button];
+  if (!mainKey) return null; // left click (0) or unknown
+
+  if (clickerMouseButton === "Left" && mainKey === "mouseleft") return null;
+  if (clickerMouseButton === "Middle" && mainKey === "mousemiddle") return null;
+  if (clickerMouseButton === "Right" && mainKey === "mouseright") return null;
+
+  if (event.button === 0) { // allow Left click with modifier
+    const hasModifier = event.ctrlKey || event.altKey || event.shiftKey || event.metaKey;
+    if (!hasModifier) return null;
+  }
+
+  const parts: string[] = [];
+  if (event.ctrlKey) parts.push("ctrl");
+  if (event.altKey) parts.push("alt");
+  if (event.shiftKey) parts.push("shift");
+  if (event.metaKey) parts.push("super");
+  parts.push(mainKey);
+  return parts.join("+");
+}
+
+/**
+ * Capture a scroll wheel direction as a hotkey.
+ */
+export function captureWheelHotkey(event: {
+  deltaY: number;
+  ctrlKey: boolean;
+  altKey: boolean;
+  shiftKey: boolean;
+  metaKey: boolean;
+}): string | null {
+  if (event.deltaY === 0) return null;
+
+  const mainKey = event.deltaY < 0 ? "scrollup" : "scrolldown";
 
   const parts: string[] = [];
   if (event.ctrlKey) parts.push("ctrl");
