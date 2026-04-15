@@ -334,15 +334,36 @@ pub fn is_hotkey_binding_pressed(binding: &HotkeyBinding) -> bool {
     let shift_down = is_vk_down(VK_SHIFT as i32);
     let super_down = is_vk_down(VK_LWIN as i32) || is_vk_down(VK_RWIN as i32);
 
-    if ctrl_down != binding.ctrl
-        || alt_down != binding.alt
-        || shift_down != binding.shift
-        || super_down != binding.super_key
+    if !modifiers_match(binding, ctrl_down, alt_down, shift_down, super_down)
     {
         return false;
     }
 
     is_main_key_active(binding.main_vk)
+}
+
+fn modifiers_match(
+    binding: &HotkeyBinding,
+    ctrl_down: bool,
+    alt_down: bool,
+    shift_down: bool,
+    super_down: bool,
+) -> bool {
+    if binding.ctrl && !ctrl_down {
+        return false;
+    }
+    if binding.alt && !alt_down {
+        return false;
+    }
+    if binding.shift && !shift_down {
+        return false;
+    }
+    if binding.super_key && !super_down
+    {
+        return false;
+    }
+
+    true
 }
 
 /// For normal VKs this uses `GetAsyncKeyState`. Pseudo-VKs use hook-maintained state.
@@ -442,7 +463,7 @@ unsafe extern "system" fn mouse_hook_proc(code: i32, w_param: usize, l_param: is
 
 #[cfg(test)]
 mod tests {
-    use super::{format_hotkey_binding, parse_hotkey_binding};
+    use super::{format_hotkey_binding, modifiers_match, parse_hotkey_binding};
 
     #[test]
     fn numpad_tokens_round_trip() {
@@ -475,5 +496,12 @@ mod tests {
     fn empty_hotkeys_are_rejected() {
         assert!(parse_hotkey_binding("").is_err());
         assert!(parse_hotkey_binding("ctrl+").is_err());
+    }
+
+    #[test]
+    fn extra_modifiers_do_not_block_hotkeys() {
+        let binding = parse_hotkey_binding("f11").expect("hotkey should parse");
+        assert!(modifiers_match(&binding, false, false, true, false));
+        assert!(modifiers_match(&binding, true, true, true, true));
     }
 }

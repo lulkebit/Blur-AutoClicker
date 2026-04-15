@@ -1,6 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
+import {
+  currentMonitor,
+  getCurrentWindow,
+  LogicalSize,
+} from "@tauri-apps/api/window";
 import { lazy, useEffect, useRef, useState } from "react";
 import UpdateBanner from "./components/Updatebanner";
 import { canonicalizeHotkeyForBackend } from "./hotkeys";
@@ -34,6 +38,24 @@ function getPanelSize(tab: Tab, settings: Settings, hasUpdate: boolean) {
   return settings.explanationMode === "off"
     ? { width: 600, height: 600 + extra }
     : { width: 800, height: 650 + extra };
+}
+
+async function getClampedPanelSize(size: { width: number; height: number }) {
+  const monitor = await currentMonitor();
+  if (!monitor) {
+    return size;
+  }
+
+  const scale = monitor.scaleFactor || 1;
+  const workAreaWidth = Math.floor(monitor.workArea.size.width / scale);
+  const workAreaHeight = Math.floor(monitor.workArea.size.height / scale);
+  const horizontalMargin = 24;
+  const verticalMargin = 24;
+
+  return {
+    width: Math.min(size.width, Math.max(360, workAreaWidth - horizontalMargin)),
+    height: Math.min(size.height, Math.max(220, workAreaHeight - verticalMargin)),
+  };
 }
 
 const DEFAULT_STATUS: ClickerStatus = {
@@ -284,11 +306,13 @@ export default function App() {
       resizeTimeout.current = null;
     }
 
-    const { width, height } = getPanelSize(tab, settings, !!updateInfo);
+    const preferredSize = getPanelSize(tab, settings, !!updateInfo);
     const root = document.querySelector(".app-root") as HTMLElement;
 
     void (async () => {
       try {
+        const { width, height } = await getClampedPanelSize(preferredSize);
+
         if (!launchWindowPlacementDone.current) {
           const appWindow = getCurrentWindow();
           await appWindow.setSize(new LogicalSize(width, height));
