@@ -362,12 +362,7 @@ fn parse_mouse_button_token(token: &str) -> Option<(i32, String)> {
         "mouseright" | "rightmouse" | "rightbutton" | "mouse2" | "rmb" => {
             Some(binding(VK_RBUTTON as i32, "mouseright"))
         }
-        "mousemiddle"
-        | "middlemouse"
-        | "middlebutton"
-        | "mouse3"
-        | "mmb"
-        | "scrollbutton"
+        "mousemiddle" | "middlemouse" | "middlebutton" | "mouse3" | "mmb" | "scrollbutton"
         | "middleclick" => Some(binding(VK_MBUTTON as i32, "mousemiddle")),
         "mouse4" | "xbutton1" | "mouseback" | "browserback" | "backbutton" => {
             Some(binding(VK_XBUTTON1 as i32, "mouse4"))

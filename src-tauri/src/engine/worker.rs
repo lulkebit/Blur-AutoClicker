@@ -352,8 +352,7 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
         } else {
             batch_interval
         };
-        let hold_ms =
-            (config.interval_secs * (config.duty.max(0.0) / 100.0) * 1000.0) as u32;
+        let hold_ms = (config.interval_secs * (config.duty.max(0.0) / 100.0) * 1000.0) as u32;
 
         next_batch_time += Duration::from_secs_f64(batch_duration.max(0.001));
 

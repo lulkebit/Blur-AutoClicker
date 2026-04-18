@@ -189,7 +189,6 @@ pub fn set_autostart_enabled(enabled: bool) -> Result<(), String> {
 
 #[tauri::command]
 pub fn quit_app(app: AppHandle) {
-    crate::overlay::OVERLAY_THREAD_RUNNING
-        .store(false, std::sync::atomic::Ordering::SeqCst);
+    crate::overlay::OVERLAY_THREAD_RUNNING.store(false, std::sync::atomic::Ordering::SeqCst);
     app.exit(0);
 }
