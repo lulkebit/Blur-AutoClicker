@@ -10,8 +10,13 @@ import {
   type ReactNode,
 } from "react";
 import type { Settings } from "../../store";
+import {
+  CLICK_INTERVAL_OPTIONS,
+  MOUSE_BUTTON_OPTIONS,
+  SETTINGS_LIMITS,
+  TIME_LIMIT_UNIT_OPTIONS,
+} from "../../settingsSchema";
 import HotkeyCaptureInput from "../HotkeyCaptureInput";
-import React from "react";
 
 interface Props {
   settings: Settings;
@@ -30,7 +35,7 @@ function ToggleBtn({
   onChange: (v: boolean) => void;
   disabled?: boolean;
 }) {
-  React.useEffect(() => {
+  useEffect(() => {
     if (disabled && value) {
       onChange(false);
     }
@@ -222,21 +227,21 @@ export default function AdvancedPanelLayout({
               <div className="adv-row">
                 <div className="adv-numbox-sm">
                   <NumInput
-                    value={settings.clickSpeed}
-                    onChange={(v) => update({ clickSpeed: v })}
-                    min={1}
-                    max={500}
-                  />
-                </div>
+                        value={settings.clickSpeed}
+                        onChange={(v) => update({ clickSpeed: v })}
+                        min={SETTINGS_LIMITS.clickSpeed.min}
+                        max={SETTINGS_LIMITS.clickSpeed.max}
+                      />
+                    </div>
                 <span className="adv-label">Clicks Per</span>
                 <div className="simple-seg-group">
-                  {(["s", "m", "h", "d"] as const).map((u) => (
+                  {CLICK_INTERVAL_OPTIONS.map((option) => (
                     <button
-                      key={u}
-                      className={`simple-seg-btn ${settings.clickInterval === u ? "active" : ""}`}
-                      onClick={() => update({ clickInterval: u })}
+                      key={option.value}
+                      className={`simple-seg-btn ${settings.clickInterval === option.value ? "active" : ""}`}
+                      onClick={() => update({ clickInterval: option.value })}
                     >
-                      {u}
+                      {option.value}
                     </button>
                   ))}
                 </div>
@@ -257,13 +262,13 @@ export default function AdvancedPanelLayout({
                   />
                 </div>
                 <div className="simple-seg-group">
-                  {(["Toggle", "Hold"] as const).map((m) => (
+                  {(["Toggle", "Hold"] as const).map((clickModeOption) => (
                     <button
-                      key={m}
-                      className={`simple-seg-btn ${settings.mode === m ? "active" : ""}`}
-                      onClick={() => update({ mode: m })}
+                      key={clickModeOption}
+                      className={`simple-seg-btn ${settings.mode === clickModeOption ? "active" : ""}`}
+                      onClick={() => update({ mode: clickModeOption })}
                     >
-                      {m}
+                      {clickModeOption}
                     </button>
                   ))}
                 </div>
@@ -271,13 +276,13 @@ export default function AdvancedPanelLayout({
               <div className="adv-row" style={{ marginTop: rowSpacing }}>
                 <span className="adv-label">Mouse Button</span>
                 <div className="simple-seg-group">
-                  {(["Left", "Middle", "Right"] as const).map((b) => (
+                  {MOUSE_BUTTON_OPTIONS.map((mouseButtonOption) => (
                     <button
-                      key={b}
-                      className={`simple-seg-btn ${settings.mouseButton === b ? "active" : ""}`}
-                      onClick={() => update({ mouseButton: b })}
+                      key={mouseButtonOption}
+                      className={`simple-seg-btn ${settings.mouseButton === mouseButtonOption ? "active" : ""}`}
+                      onClick={() => update({ mouseButton: mouseButtonOption })}
                     >
-                      {b}
+                      {mouseButtonOption}
                     </button>
                   ))}
                 </div>
@@ -293,8 +298,8 @@ export default function AdvancedPanelLayout({
                       <NumInput
                         value={settings.dutyCycle}
                         onChange={(v) => update({ dutyCycle: v })}
-                        min={0}
-                        max={100}
+                        min={SETTINGS_LIMITS.dutyCycle.min}
+                        max={SETTINGS_LIMITS.dutyCycle.max}
                       />
                       <span className="adv-unit">%</span>
                     </div>
@@ -316,8 +321,8 @@ export default function AdvancedPanelLayout({
                       <NumInput
                         value={settings.speedVariation}
                         onChange={(v) => update({ speedVariation: v })}
-                        min={0}
-                        max={200}
+                        min={SETTINGS_LIMITS.speedVariation.min}
+                        max={SETTINGS_LIMITS.speedVariation.max}
                       />
                       <span className="adv-unit">%</span>
                     </div>
@@ -405,7 +410,7 @@ export default function AdvancedPanelLayout({
                       <NumInput
                         value={settings.clickLimit}
                         onChange={(v) => update({ clickLimit: v })}
-                        min={1}
+                        min={SETTINGS_LIMITS.clickLimit.min}
                         style={{ width: "89px", textAlign: "right" }}
                       />
                       <span className="adv-unit">clicks</span>
@@ -428,20 +433,20 @@ export default function AdvancedPanelLayout({
                     <div className="adv-row" style={{ gap: 6 }}>
                       <div className="adv-numbox-sm">
                         <NumInput
-                          value={settings.timeLimit}
-                          onChange={(v) => update({ timeLimit: v })}
-                          min={1}
-                          style={{ width: "38px", textAlign: "right" }}
-                        />
+                        value={settings.timeLimit}
+                        onChange={(v) => update({ timeLimit: v })}
+                        min={SETTINGS_LIMITS.timeLimit.min}
+                        style={{ width: "38px", textAlign: "right" }}
+                      />
                       </div>
                       <div className="simple-seg-group">
-                        {(["s", "m", "h"] as const).map((u) => (
+                        {TIME_LIMIT_UNIT_OPTIONS.map((timeLimitUnitOption) => (
                           <button
-                            key={u}
-                            className={`simple-seg-btn ${settings.timeLimitUnit === u ? "active" : ""}`}
-                            onClick={() => update({ timeLimitUnit: u })}
+                            key={timeLimitUnitOption}
+                            className={`simple-seg-btn ${settings.timeLimitUnit === timeLimitUnitOption ? "active" : ""}`}
+                            onClick={() => update({ timeLimitUnit: timeLimitUnitOption })}
                           >
-                            {u}
+                            {timeLimitUnitOption}
                           </button>
                         ))}
                       </div>
@@ -475,16 +480,16 @@ export default function AdvancedPanelLayout({
                     </p>
                   )}
                   <div className="adv-corner-grid">
-                    {(["tl", "tr", "bl", "br"] as const).map((c) => (
-                      <div key={c} className="adv-corner-box">
-                        <div className={`adv-arc adv-arc-${c}`} />
+                    {(["tl", "tr", "bl", "br"] as const).map((cornerKey) => (
+                      <div key={cornerKey} className="adv-corner-box">
+                        <div className={`adv-arc adv-arc-${cornerKey}`} />
                         <NumInput
-                          value={settings[CORNER_KEYS[c]]}
+                          value={settings[CORNER_KEYS[cornerKey]]}
                           onChange={(v) => {
-                            update({ [CORNER_KEYS[c]]: v });
+                            update({ [CORNER_KEYS[cornerKey]]: v });
                           }}
-                          min={0}
-                          max={999}
+                          min={SETTINGS_LIMITS.stopBoundary.min}
+                          max={SETTINGS_LIMITS.stopBoundary.max}
                           style={{ width: "28px", textAlign: "right" }}
                         />
                         <span className="adv-unit">px</span>
@@ -515,16 +520,16 @@ export default function AdvancedPanelLayout({
                     </p>
                   )}
                   <div className="adv-corner-grid">
-                    {(["top", "right", "left", "bottom"] as const).map((e) => (
-                      <div key={e} className="adv-corner-box">
-                        <div className={`adv-edge-bar adv-edge-bar-${e}`} />
+                    {(["top", "right", "left", "bottom"] as const).map((edgeSide) => (
+                      <div key={edgeSide} className="adv-corner-box">
+                        <div className={`adv-edge-bar adv-edge-bar-${edgeSide}`} />
                         <NumInput
-                          value={settings[EDGE_KEYS[e]]}
+                          value={settings[EDGE_KEYS[edgeSide]]}
                           onChange={(v) => {
-                            update({ [EDGE_KEYS[e]]: v });
+                            update({ [EDGE_KEYS[edgeSide]]: v });
                           }}
-                          min={0}
-                          max={999}
+                          min={SETTINGS_LIMITS.stopBoundary.min}
+                          max={SETTINGS_LIMITS.stopBoundary.max}
                           style={{ width: "28px", textAlign: "right" }}
                         />
                         <span className="adv-unit">px</span>
@@ -580,7 +585,7 @@ export default function AdvancedPanelLayout({
                         <NumInput
                           value={settings.positionX}
                           onChange={(v) => update({ positionX: v })}
-                          min={0}
+                          min={SETTINGS_LIMITS.position.min}
                           style={{ width: "37px" }}
                         />
                       </div>
@@ -597,7 +602,7 @@ export default function AdvancedPanelLayout({
                         <NumInput
                           value={settings.positionY}
                           onChange={(v) => update({ positionY: v })}
-                          min={0}
+                          min={SETTINGS_LIMITS.position.min}
                           style={{ width: "37px" }}
                         />
                       </div>
@@ -633,19 +638,19 @@ export default function AdvancedPanelLayout({
                 <NumInput
                   value={settings.clickSpeed}
                   onChange={(v) => update({ clickSpeed: v })}
-                  min={1}
-                  max={500}
+                  min={SETTINGS_LIMITS.clickSpeed.min}
+                  max={SETTINGS_LIMITS.clickSpeed.max}
                 />
               </div>
               <span className="adv-label">Clicks Per</span>
               <div className="simple-seg-group">
-                {(["s", "m", "h", "d"] as const).map((u) => (
+                {CLICK_INTERVAL_OPTIONS.map((option) => (
                   <button
-                    key={u}
-                    className={`simple-seg-btn ${settings.clickInterval === u ? "active" : ""}`}
-                    onClick={() => update({ clickInterval: u })}
+                    key={option.value}
+                    className={`simple-seg-btn ${settings.clickInterval === option.value ? "active" : ""}`}
+                    onClick={() => update({ clickInterval: option.value })}
                   >
-                    {u}
+                    {option.value}
                   </button>
                 ))}
               </div>
@@ -666,13 +671,13 @@ export default function AdvancedPanelLayout({
                 />
               </div>
               <div className="simple-seg-group">
-                {(["Toggle", "Hold"] as const).map((m) => (
+                {(["Toggle", "Hold"] as const).map((clickModeOption) => (
                   <button
-                    key={m}
-                    className={`simple-seg-btn ${settings.mode === m ? "active" : ""}`}
-                    onClick={() => update({ mode: m })}
+                    key={clickModeOption}
+                    className={`simple-seg-btn ${settings.mode === clickModeOption ? "active" : ""}`}
+                    onClick={() => update({ mode: clickModeOption })}
                   >
-                    {m}
+                    {clickModeOption}
                   </button>
                 ))}
               </div>
@@ -680,13 +685,13 @@ export default function AdvancedPanelLayout({
             <div className="adv-row" style={{ marginTop: rowSpacing }}>
               <span className="adv-label">Mouse Button</span>
               <div className="simple-seg-group">
-                {(["Left", "Middle", "Right"] as const).map((b) => (
+                {MOUSE_BUTTON_OPTIONS.map((mouseButtonOption) => (
                   <button
-                    key={b}
-                    className={`simple-seg-btn ${settings.mouseButton === b ? "active" : ""}`}
-                    onClick={() => update({ mouseButton: b })}
+                    key={mouseButtonOption}
+                    className={`simple-seg-btn ${settings.mouseButton === mouseButtonOption ? "active" : ""}`}
+                    onClick={() => update({ mouseButton: mouseButtonOption })}
                   >
-                    {b}
+                    {mouseButtonOption}
                   </button>
                 ))}
               </div>
@@ -757,11 +762,11 @@ export default function AdvancedPanelLayout({
                   >
                     <span className="adv-unit adv-axis-label">X</span>
                     <NumInput
-                      value={settings.positionX}
-                      onChange={(v) => update({ positionX: v })}
-                      min={0}
-                      style={{ width: "32px" }}
-                    />
+                        value={settings.positionX}
+                        onChange={(v) => update({ positionX: v })}
+                        min={SETTINGS_LIMITS.position.min}
+                        style={{ width: "32px" }}
+                      />
                   </div>
                   <div
                     className="adv-numbox-sm"
@@ -769,11 +774,11 @@ export default function AdvancedPanelLayout({
                   >
                     <span className="adv-unit adv-axis-label">Y</span>
                     <NumInput
-                      value={settings.positionY}
-                      onChange={(v) => update({ positionY: v })}
-                      min={0}
-                      style={{ width: "32px" }}
-                    />
+                        value={settings.positionY}
+                        onChange={(v) => update({ positionY: v })}
+                        min={SETTINGS_LIMITS.position.min}
+                        style={{ width: "32px" }}
+                      />
                   </div>
                   <button
                     className="adv-pick-btn adv-pick-btn-inline"
@@ -808,8 +813,8 @@ export default function AdvancedPanelLayout({
                       <NumInput
                         value={settings.clickLimit}
                         onChange={(v) => update({ clickLimit: v })}
-                        min={1}
-                        max={10000000}
+                        min={SETTINGS_LIMITS.clickLimit.min}
+                        max={SETTINGS_LIMITS.clickLimit.max}
                         style={{ width: "72px", textAlign: "right" }}
                       />
                       <span className="adv-unit">clicks</span>
@@ -835,18 +840,18 @@ export default function AdvancedPanelLayout({
                       <NumInput
                         value={settings.timeLimit}
                         onChange={(v) => update({ timeLimit: v })}
-                        min={1}
+                        min={SETTINGS_LIMITS.timeLimit.min}
                         style={{ width: "32px", textAlign: "right" }}
                       />
                     </div>
                     <div className="simple-seg-group">
-                      {(["s", "m", "h"] as const).map((u) => (
+                      {TIME_LIMIT_UNIT_OPTIONS.map((timeLimitUnitOption) => (
                         <button
-                          key={u}
-                          className={`simple-seg-btn ${settings.timeLimitUnit === u ? "active" : ""}`}
-                          onClick={() => update({ timeLimitUnit: u })}
+                          key={timeLimitUnitOption}
+                          className={`simple-seg-btn ${settings.timeLimitUnit === timeLimitUnitOption ? "active" : ""}`}
+                          onClick={() => update({ timeLimitUnit: timeLimitUnitOption })}
                         >
-                          {u}
+                          {timeLimitUnitOption}
                         </button>
                       ))}
                     </div>
@@ -870,13 +875,13 @@ export default function AdvancedPanelLayout({
                     <div className="adv-minmax">
                       <div className="adv-numbox-sm">
                         <NumInput
-                          value={settings.dutyCycle}
-                          onChange={(v) => update({ dutyCycle: v })}
-                          min={0}
-                          max={200}
-                        />
-                        <span className="adv-unit">%</span>
-                      </div>
+                        value={settings.dutyCycle}
+                        onChange={(v) => update({ dutyCycle: v })}
+                        min={SETTINGS_LIMITS.dutyCycle.min}
+                        max={SETTINGS_LIMITS.dutyCycle.max}
+                      />
+                      <span className="adv-unit">%</span>
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -899,8 +904,8 @@ export default function AdvancedPanelLayout({
                       <NumInput
                         value={settings.speedVariation}
                         onChange={(v) => update({ speedVariation: v })}
-                        min={0}
-                        max={200}
+                        min={SETTINGS_LIMITS.speedVariation.min}
+                        max={SETTINGS_LIMITS.speedVariation.max}
                       />
                       <span className="adv-unit">%</span>
                     </div>
@@ -923,16 +928,16 @@ export default function AdvancedPanelLayout({
               <Disableable enabled={settings.cornerStopEnabled}>
                 <div className={featureBodyClass}>
                   <div className="adv-corner-grid">
-                    {(["tl", "tr", "bl", "br"] as const).map((c) => (
-                      <div key={c} className="adv-corner-box">
-                        <div className={`adv-arc adv-arc-${c}`} />
+                    {(["tl", "tr", "bl", "br"] as const).map((cornerKey) => (
+                      <div key={cornerKey} className="adv-corner-box">
+                        <div className={`adv-arc adv-arc-${cornerKey}`} />
                         <NumInput
-                          value={settings[CORNER_KEYS[c]]}
+                          value={settings[CORNER_KEYS[cornerKey]]}
                           onChange={(v) => {
-                            update({ [CORNER_KEYS[c]]: v });
+                            update({ [CORNER_KEYS[cornerKey]]: v });
                           }}
-                          min={0}
-                          max={999}
+                          min={SETTINGS_LIMITS.stopBoundary.min}
+                          max={SETTINGS_LIMITS.stopBoundary.max}
                           style={{ width: "28px", textAlign: "right" }}
                         />
                         <span className="adv-unit">px</span>
@@ -957,16 +962,16 @@ export default function AdvancedPanelLayout({
               <Disableable enabled={settings.edgeStopEnabled}>
                 <div className={featureBodyClass}>
                   <div className="adv-corner-grid">
-                    {(["top", "right", "left", "bottom"] as const).map((e) => (
-                      <div key={e} className="adv-corner-box">
-                        <div className={`adv-edge-bar adv-edge-bar-${e}`} />
+                    {(["top", "right", "left", "bottom"] as const).map((edgeSide) => (
+                      <div key={edgeSide} className="adv-corner-box">
+                        <div className={`adv-edge-bar adv-edge-bar-${edgeSide}`} />
                         <NumInput
-                          value={settings[EDGE_KEYS[e]]}
+                          value={settings[EDGE_KEYS[edgeSide]]}
                           onChange={(v) => {
-                            update({ [EDGE_KEYS[e]]: v });
+                            update({ [EDGE_KEYS[edgeSide]]: v });
                           }}
-                          min={0}
-                          max={999}
+                          min={SETTINGS_LIMITS.stopBoundary.min}
+                          max={SETTINGS_LIMITS.stopBoundary.max}
                           style={{ width: "28px", textAlign: "right" }}
                         />
                         <span className="adv-unit">px</span>
