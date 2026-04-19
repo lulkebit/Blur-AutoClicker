@@ -1,7 +1,13 @@
 import type { Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { SETTINGS_LIMITS } from "../../../settingsSchema";
-import { Disableable, NumInput, ToggleBtn, CardDivider } from "./shared";
+import {
+  Disableable,
+  NumInput,
+  ToggleBtn,
+  CardDivider,
+  InfoIcon,
+} from "./shared";
 
 interface Props {
   settings: Settings;
@@ -30,7 +36,17 @@ export default function FailsafeSection({ settings, update, showInfo }: Props) {
     <>
       <div className="adv-sectioncontainer">
         <div className="adv-card-header">
-          <span className="adv-card-title">{t("advanced.cornerStop")}</span>
+          <div
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <InfoIcon text={t("advanced.cornerStopDescription")} />
+            <span className="adv-card-title">{t("advanced.cornerStop")}</span>
+          </div>
           <ToggleBtn
             value={settings.cornerStopEnabled}
             onChange={(v) => update({ cornerStopEnabled: v })}
@@ -42,11 +58,6 @@ export default function FailsafeSection({ settings, update, showInfo }: Props) {
           disabledReason={t("advanced.cornerStopUnavailable")}
         >
           <div className="adv-row" style={{ gap: 8 }}>
-            {showInfo && (
-              <p className="adv-desc">
-                {t("advanced.cornerStopDescription")}
-              </p>
-            )}
             <div className="adv-corner-grid">
               {(["tl", "tr", "bl", "br"] as const).map((cornerKey) => (
                 <div key={cornerKey} className="adv-corner-box">
@@ -68,7 +79,17 @@ export default function FailsafeSection({ settings, update, showInfo }: Props) {
 
       <div className="adv-sectioncontainer">
         <div className="adv-card-header">
-          <span className="adv-card-title">{t("advanced.edgeStop")}</span>
+          <div
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            {showInfo ? <InfoIcon text={t("advanced.edgeStopDescription")} /> : null}
+            <span className="adv-card-title">{t("advanced.edgeStop")}</span>
+          </div>
           <ToggleBtn
             value={settings.edgeStopEnabled}
             onChange={(v) => update({ edgeStopEnabled: v })}
@@ -80,27 +101,20 @@ export default function FailsafeSection({ settings, update, showInfo }: Props) {
           disabledReason={t("advanced.edgeStopUnavailable")}
         >
           <div className="adv-row" style={{ gap: 8 }}>
-            {showInfo && (
-              <p className="adv-desc">
-                {t("advanced.edgeStopDescription")}
-              </p>
-            )}
             <div className="adv-corner-grid">
-              {(["top", "right", "left", "bottom"] as const).map(
-                (edgeSide) => (
-                  <div key={edgeSide} className="adv-corner-box">
-                    <div className={`adv-edge-bar adv-edge-bar-${edgeSide}`} />
-                    <NumInput
-                      value={settings[EDGE_KEYS[edgeSide]]}
-                      onChange={(v) => update({ [EDGE_KEYS[edgeSide]]: v })}
-                      min={SETTINGS_LIMITS.stopBoundary.min}
-                      max={SETTINGS_LIMITS.stopBoundary.max}
-                      style={{ width: "28px", textAlign: "right" }}
-                    />
-                    <span className="adv-unit">px</span>
-                  </div>
-                ),
-              )}
+              {(["top", "right", "left", "bottom"] as const).map((edgeSide) => (
+                <div key={edgeSide} className="adv-corner-box">
+                  <div className={`adv-edge-bar adv-edge-bar-${edgeSide}`} />
+                  <NumInput
+                    value={settings[EDGE_KEYS[edgeSide]]}
+                    onChange={(v) => update({ [EDGE_KEYS[edgeSide]]: v })}
+                    min={SETTINGS_LIMITS.stopBoundary.min}
+                    max={SETTINGS_LIMITS.stopBoundary.max}
+                    style={{ width: "28px", textAlign: "right" }}
+                  />
+                  <span className="adv-unit">px</span>
+                </div>
+              ))}
             </div>
           </div>
         </Disableable>

@@ -4,6 +4,7 @@ import { MOUSE_BUTTON_OPTIONS } from "../../../settingsSchema";
 import CadenceInput from "../../CadenceInput";
 import HotkeyCaptureInput from "../../HotkeyCaptureInput";
 import type { MouseButton } from "@tauri-apps/api/tray";
+import { InfoIcon } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -11,7 +12,7 @@ interface Props {
   showInfo: boolean;
 }
 
-export default function CadenceSection({ settings, update }: Props) {
+export default function CadenceSection({ settings, update, showInfo }: Props) {
   const { t } = useTranslation();
   const rowSpacing = 8;
 
@@ -21,9 +22,19 @@ export default function CadenceSection({ settings, update }: Props) {
         settings={settings}
         update={update}
         variant="advanced"
+        showInfo={showInfo}
       />
       <div className="adv-row" style={{ marginTop: rowSpacing }}>
-        <span className="adv-label">{t("advanced.hotkey")}</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.hotkeyDescription")} /> : null}
+          <span className="adv-label">{t("advanced.hotkey")}</span>
+        </div>
         <div className="adv-textbox">
           <HotkeyCaptureInput
             className="adv-textbox-text"
@@ -50,7 +61,16 @@ export default function CadenceSection({ settings, update }: Props) {
         </div>
       </div>
       <div className="adv-row" style={{ marginTop: rowSpacing }}>
-        <span className="adv-label">{t("advanced.mouseButton")}</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.mouseButtonDescription")} /> : null}
+          <span className="adv-label">{t("advanced.mouseButton")}</span>
+        </div>
         <div className="adv-seg-group">
           {MOUSE_BUTTON_OPTIONS.map((mouseButtonOption: string) => (
             <button

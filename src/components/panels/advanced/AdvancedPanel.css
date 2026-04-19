@@ -496,3 +496,59 @@ input[type="number"]::-webkit-outer-spin-button {
   border: none;
   outline: none;
 }
+
+.adv-info-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: help;
+  color: var(--text-dim);
+  transition: color 0.15s ease;
+  user-select: none;
+  z-index: 2000;
+  isolation: isolate;
+}
+
+.adv-info-icon:hover {
+  color: var(--text-muted);
+}
+
+.adv-info-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  transform: none;
+  width: 220px;
+  padding: 6px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-family: 'DMSans', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-li);
+  color: var(--text-muted);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-align: left;
+  z-index: 3000;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  box-shadow: var(--container-shadow);
+}
+
+.adv-info-icon:hover .adv-info-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.adv-info-tooltip--portal {
+  position: fixed;
+  visibility: visible;
+  opacity: 1;
+  bottom: auto;
+  z-index: 2147483647;
+}

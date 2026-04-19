@@ -1,7 +1,7 @@
 import type { Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { getEffectiveClicksPerSecond, getMaxDoubleClickDelayMs } from "../../../cadence";
-import { Disableable, NumInput, ToggleBtn } from "./shared";
+import { Disableable, InfoIcon, NumInput, ToggleBtn } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -41,9 +41,18 @@ export default function DoubleClickSection({ settings, update, showInfo }: Props
   return (
     <div className="adv-sectioncontainer adv-basic-card">
       <div className="adv-card-header">
-        <span className="adv-card-title">
-          {t("advanced.doubleClick")}
-        </span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.doubleClickDescription")} /> : null}
+          <span className="adv-card-title">
+            {t("advanced.doubleClick")}
+          </span>
+        </div>
         <div className="adv-row" style={{ gap: 8 }}>
           <Disableable enabled={settings.doubleClickEnabled}>
             <div className="adv-numbox-sm">
@@ -64,12 +73,6 @@ export default function DoubleClickSection({ settings, update, showInfo }: Props
           />
         </div>
       </div>
-      <Disableable
-        enabled={settings.doubleClickEnabled}
-        disabledReason={t("advanced.doubleClickContentUnavailable")}
-      >
-        {showInfo ? <p className="adv-desc">{t("advanced.doubleClickDescription")}</p> : null}
-      </Disableable>
     </div>
   );
 }

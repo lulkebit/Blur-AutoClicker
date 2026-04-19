@@ -3,11 +3,14 @@ import "./panels/advanced/AdvancedPanel.css";
 import { formatDurationSummary, RATE_INPUT_MODE_OPTIONS } from "../cadence";
 import { normalizeIntegerRaw } from "../numberInput";
 import type { RateInputMode, Settings } from "../store";
+import { useTranslation } from "../i18n";
+import { InfoIcon } from "./panels/advanced/shared";
 
 interface Props {
   settings: Settings;
   update: (patch: Partial<Settings>) => void;
   variant: "simple" | "advanced";
+  showInfo?: boolean;
 }
 
 const INTERVAL_OPTIONS = [
@@ -134,7 +137,14 @@ function renderClockIcon() {
   );
 }
 
-export default function CadenceInput({ settings, update, variant }: Props) {
+export default function CadenceInput({
+  settings,
+  update,
+  variant,
+  showInfo = false,
+}: Props) {
+  const { t } = useTranslation();
+
   const switchMode = (mode: RateInputMode) => {
     update({ rateInputMode: mode });
   };
@@ -258,7 +268,16 @@ export default function CadenceInput({ settings, update, variant }: Props) {
   return (
     <div className="adv-cadence-block">
       <div className="adv-row adv-cadence-header">
-        <span className="adv-label">Cadence</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.cadenceDescription")} /> : null}
+          <span className="adv-label">{t("advanced.cadence")}</span>
+        </div>
         <div className="adv-seg-group">
           {RATE_INPUT_MODE_OPTIONS.map((mode) => (
             <button
@@ -304,7 +323,7 @@ export default function CadenceInput({ settings, update, variant }: Props) {
               }}
             />
           </div>
-          <span className="adv-label">Clicks Per</span>
+          <span className="adv-label">{t("advanced.clicksPer")}</span>
           <div className="adv-seg-group">
             {INTERVAL_OPTIONS.map((option) => (
               <button

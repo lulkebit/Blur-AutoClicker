@@ -4,7 +4,7 @@ import {
   SETTINGS_LIMITS,
   TIME_LIMIT_UNIT_OPTIONS,
 } from "../../../settingsSchema";
-import { Disableable, NumInput, ToggleBtn, CardDivider } from "./shared";
+import { Disableable, NumInput, ToggleBtn, CardDivider, InfoIcon } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -12,13 +12,22 @@ interface Props {
   showInfo: boolean;
 }
 
-export default function LimitsSection({ settings, update }: Props) {
+export default function LimitsSection({ settings, update, showInfo }: Props) {
   const { t } = useTranslation();
 
   return (
     <div className="adv-sectioncontainer adv-limits-card">
       <div className="adv-row" style={{ justifyContent: "space-between" }}>
-        <span className="adv-card-title">{t("advanced.clickLimit")}</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.clickLimitDescription")} /> : null}
+          <span className="adv-card-title">{t("advanced.clickLimit")}</span>
+        </div>
         <div className="adv-row" style={{ gap: 6 }}>
           <Disableable
             enabled={settings.clickLimitEnabled}
@@ -42,7 +51,16 @@ export default function LimitsSection({ settings, update }: Props) {
       </div>
       <CardDivider />
       <div className="adv-row" style={{ justifyContent: "space-between" }}>
-        <span className="adv-card-title">{t("advanced.timeLimit")}</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.timeLimitDescription")} /> : null}
+          <span className="adv-card-title">{t("advanced.timeLimit")}</span>
+        </div>
         <div className="adv-row" style={{ gap: 6 }}>
           <Disableable
             enabled={settings.timeLimitEnabled}

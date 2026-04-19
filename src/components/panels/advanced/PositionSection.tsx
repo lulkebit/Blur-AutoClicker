@@ -3,7 +3,7 @@ import type { Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { SETTINGS_LIMITS } from "../../../settingsSchema";
 import UnavailableReason from "../../UnavailableReason";
-import { Disableable, NumInput, ToggleBtn, CardDivider } from "./shared";
+import { Disableable, NumInput, ToggleBtn, CardDivider, InfoIcon } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -46,7 +46,16 @@ export default function PositionSection({ settings, update, showInfo, onPickPosi
   return (
     <div className="adv-sectioncontainer">
       <div className="adv-card-header">
-        <span className="adv-card-title">{t("advanced.position")}</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.positionDescription")} /> : null}
+          <span className="adv-card-title">{t("advanced.position")}</span>
+        </div>
         <ToggleBtn
           value={settings.positionEnabled}
           onChange={(v) =>
@@ -63,11 +72,6 @@ export default function PositionSection({ settings, update, showInfo, onPickPosi
         disabledReason={t("advanced.positionUnavailable")}
       >
         <div className="adv-row" style={{ marginTop: 8, gap: 6 }}>
-          {showInfo && (
-            <p className="adv-desc">
-              {t("advanced.positionDescription")}
-            </p>
-          )}
           <div
             style={{
               display: "flex",

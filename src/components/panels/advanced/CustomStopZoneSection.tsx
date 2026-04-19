@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { invoke } from "@tauri-apps/api/core";
-import { Disableable, NumInput, ToggleBtn, CardDivider } from "./shared";
+import { Disableable, NumInput, ToggleBtn, CardDivider, InfoIcon } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -54,9 +54,18 @@ export default function CustomStopZoneSection({ settings, update, showInfo }: Pr
   return (
     <div className="adv-sectioncontainer">
       <div className="adv-card-header">
-        <span className="adv-card-title">
-          {t("advanced.customStopZone")}
-        </span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.customStopZoneDescription")} /> : null}
+          <span className="adv-card-title">
+            {t("advanced.customStopZone")}
+          </span>
+        </div>
         <ToggleBtn
           value={settings.customStopZoneEnabled}
           onChange={(v) => update({ customStopZoneEnabled: v })}
@@ -65,11 +74,6 @@ export default function CustomStopZoneSection({ settings, update, showInfo }: Pr
       <CardDivider />
       <Disableable enabled={settings.customStopZoneEnabled}>
         <div className="adv-stop-zone-body">
-          {showInfo && (
-            <p className="adv-desc">
-              {t("advanced.customStopZoneDescription")}
-            </p>
-          )}
           <div className="adv-stop-zone-controls">
             <div className="adv-stop-zone-grid">
               <div className="adv-numbox-sm adv-sequence-coord">

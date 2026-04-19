@@ -83,9 +83,13 @@
     "randomizationDescription": "Cambia aleatoriamente la velocidad de clic dentro del rango porcentual del CPS configurado"
   },
   "advanced": {
+    "cadence": "Cadence",
+    "cadenceDescription": "Controls how quickly clicks are generated: either as clicks per interval (Rate) or as a fixed delay between clicks (Delay).",
     "clicksPer": "Clics por",
     "hotkey": "Tecla rápida",
+    "hotkeyDescription": "Choose the key combo that starts and stops the clicker. Use Toggle for press-on/press-off, or Hold to click only while held.",
     "mouseButton": "Botón del mouse",
+    "mouseButtonDescription": "Select which mouse button the clicker will press on each click event.",
     "dutyCycle": "Ciclo de pulsación",
     "dutyCycleDescription": "Aleatoriza cuánto tiempo se mantiene pulsado el botón del mouse entre los porcentajes mínimo y máximo de cada intervalo de clic.",
     "speedVariation": "Variación de velocidad",
@@ -93,7 +97,9 @@
     "doubleClick": "Doble clic",
     "doubleClickDescription": "Pulsa el botón dos veces por intervalo con un retraso configurable entre clics.",
     "clickLimit": "Límite de clics",
+    "clickLimitDescription": "Stops automatically after the selected number of clicks.",
     "timeLimit": "Límite de tiempo",
+    "timeLimitDescription": "Stops automatically after the selected duration.",
     "cornerStop": "Parada en esquina",
     "cornerStopDescription": "Detiene el clicker cuando el cursor entra en una esquina de la pantalla. Mantenlo como seguridad.",
     "edgeStop": "Parada en borde",

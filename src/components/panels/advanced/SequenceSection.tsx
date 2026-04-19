@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { SequencePoint, Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { invoke } from "@tauri-apps/api/core";
-import { NumInput, Disableable, CardDivider, ToggleBtn } from "./shared";
+import { NumInput, Disableable, CardDivider, ToggleBtn, InfoIcon } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -65,9 +65,18 @@ export default function SequenceSection({ settings, update, showInfo }: Props) {
   return (
     <div className="adv-sectioncontainer">
       <div className="adv-card-header">
-        <span className="adv-card-title">
-          {t("advanced.sequenceClicking")}
-        </span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.sequenceClickingDescription")} /> : null}
+          <span className="adv-card-title">
+            {t("advanced.sequenceClicking")}
+          </span>
+        </div>
         <ToggleBtn
           value={settings.sequenceEnabled}
           onChange={(v) =>
@@ -81,11 +90,6 @@ export default function SequenceSection({ settings, update, showInfo }: Props) {
       <CardDivider />
       <Disableable enabled={settings.sequenceEnabled}>
         <div className="adv-sequence-body">
-          {showInfo && (
-            <p className="adv-desc">
-              {t("advanced.sequenceClickingDescription")}
-            </p>
-          )}
           <div className="adv-sequence-controls">
             <div className="adv-sequence-toolbar">
               <button

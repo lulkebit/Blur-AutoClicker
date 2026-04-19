@@ -1,7 +1,7 @@
 import type { Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { SETTINGS_LIMITS } from "../../../settingsSchema";
-import { NumInput } from "./shared";
+import { InfoIcon, NumInput } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -15,7 +15,16 @@ export default function DutyCycleSection({ settings, update, showInfo }: Props) 
   return (
     <div className="adv-sectioncontainer adv-basic-card">
       <div className="adv-card-header">
-        <span className="adv-card-title">{t("advanced.dutyCycle")}</span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.dutyCycleDescription")} /> : null}
+          <span className="adv-card-title">{t("advanced.dutyCycle")}</span>
+        </div>
         <div className="adv-row" style={{ gap: 6 }}>
           <div className="adv-minmax">
             <div className="adv-numbox-sm">
@@ -30,7 +39,6 @@ export default function DutyCycleSection({ settings, update, showInfo }: Props) 
           </div>
         </div>
       </div>
-      {showInfo ? <p className="adv-desc">{t("advanced.dutyCycleDescription")}</p> : null}
     </div>
   );
 }

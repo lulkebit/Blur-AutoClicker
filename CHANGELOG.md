@@ -1,26 +1,29 @@
-# Unreleased
+# v3.5.0 - 19.04.2026 (d.m.y)
 ## New
 - Added named presets for saving and reusing clicker configurations.
 - Added persistent Always on Top preference.
-- Added accent color customization for active UI states.
-
+- Added accent color customization.
+- Info icons instead of always visible explanations for settings to reduce clutter.
+- Sequence clicking
+- Custom Stop Zones
 ## Changed
 - Centralized frontend settings bounds, options, and preset helpers.
 - Cleaned up runtime stats logging output and changelog encoding issues.
+- Split up Advanced page file for better organization.
 
-# v3.4.1 - 16.06.2026 (d.m.y)
-## ❇️ New:
+# v3.4.1 - 16.04.2026 (d.m.y)
+## New
 - added a settings toggle for relaxed / strict keybind mode.
-## 🔹 Changed:
+## Changed
 - px values to support scaling correctly (thank you rorky47)
 - Changed size and style of ko-fi donation button
 - made css more consistent (thank you lulkebit)
 - added ci checks (thank you Rorky47)
 - added windows signing support (thank you David-T-Campos)
-## 🔺 Fix:
+## Fix
 - Windows Text Scaling should now work properly (thank you Rorky47 & David-T-Campos for the help)
 
-# v3.4.0 - 15.05.2026 (d.m.y)
+# v3.4.0 - 15.04.2026 (d.m.y)
 ## New
 - Added Light Mode with Light / Dark toggle in the settings
 - Added support for Mouse Buttons and Numpads
@@ -176,6 +179,3 @@
 ## Performance Updates
 - Introduced click batching at higher CPS to send multiple clicks every call.
 - Variables are initialized outside the `isRunning` loop.
-
-# v0.0.0 - ..202 (d.m.y)
-Empty template entry.

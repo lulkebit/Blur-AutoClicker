@@ -83,9 +83,13 @@
     "randomizationDescription": "Randomly changes click speed in % range of set CPS"
   },
   "advanced": {
+    "cadence": "Cadence",
+    "cadenceDescription": "Controls how quickly clicks are generated: either as clicks per interval (Rate) or as a fixed delay between clicks (Delay).",
     "clicksPer": "Clicks Per",
     "hotkey": "Hotkey",
+    "hotkeyDescription": "Choose the key combo that starts and stops the clicker. Use Toggle for press-on/press-off, or Hold to click only while held.",
     "mouseButton": "Mouse Button",
+    "mouseButtonDescription": "Select which mouse button the clicker will press on each click event.",
     "dutyCycle": "Duty Cycle",
     "dutyCycleDescription": "Randomizes how long the mouse button stays held between the min and max percentages of each click interval.",
     "speedVariation": "Speed Variation",
@@ -93,7 +97,9 @@
     "doubleClick": "Double Click",
     "doubleClickDescription": "Fires the button twice per interval with a configurable delay between the clicks.",
     "clickLimit": "Click Limit",
+    "clickLimitDescription": "Stops automatically after the selected number of clicks.",
     "timeLimit": "Time Limit",
+    "timeLimitDescription": "Stops automatically after the selected duration.",
     "cornerStop": "Corner Stop",
     "cornerStopDescription": "Stops the clicker when the cursor enters a screen corner. Keep it as a failsafe.",
     "edgeStop": "Edge Stop",

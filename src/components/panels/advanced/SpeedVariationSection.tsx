@@ -1,7 +1,7 @@
 import type { Settings } from "../../../store";
 import { useTranslation } from "../../../i18n";
 import { SETTINGS_LIMITS } from "../../../settingsSchema";
-import { Disableable, NumInput, ToggleBtn } from "./shared";
+import { Disableable, InfoIcon, NumInput, ToggleBtn } from "./shared";
 
 interface Props {
   settings: Settings;
@@ -15,9 +15,18 @@ export default function SpeedVariationSection({ settings, update, showInfo }: Pr
   return (
     <div className="adv-sectioncontainer adv-basic-card">
       <div className="adv-card-header">
-        <span className="adv-card-title">
-          {t("advanced.speedVariation")}
-        </span>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          {showInfo ? <InfoIcon text={t("advanced.speedVariationDescription")} /> : null}
+          <span className="adv-card-title">
+            {t("advanced.speedVariation")}
+          </span>
+        </div>
         <div className="adv-row" style={{ gap: 8 }}>
           <Disableable
             enabled={settings.speedVariationEnabled}
@@ -39,12 +48,6 @@ export default function SpeedVariationSection({ settings, update, showInfo }: Pr
           />
         </div>
       </div>
-      <Disableable
-        enabled={settings.speedVariationEnabled}
-        disabledReason={t("advanced.speedVariationUnavailable")}
-      >
-        {showInfo ? <p className="adv-desc">{t("advanced.speedVariationDescription")}</p> : null}
-      </Disableable>
     </div>
   );
 }

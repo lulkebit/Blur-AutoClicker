@@ -1,11 +1,15 @@
 import {
-  type ChangeEvent,
   type CSSProperties,
+  type ChangeEvent,
   type FocusEvent,
   type ReactNode,
+  useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
+  useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "../../../i18n";
 import { normalizeIntegerRaw } from "../../../numberInput";
 import UnavailableReason from "../../UnavailableReason";
@@ -154,4 +158,131 @@ export function NumInput({
 
 export function CardDivider() {
   return <div className="adv-card-divider" />;
+}
+
+export function InfoIcon({ text }: { text: string }) {
+  const iconRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [placement, setPlacement] = useState<"above" | "below">("above");
+  const [position, setPosition] = useState<{ left: number; top: number }>({
+    left: 0,
+    top: 0,
+  });
+
+  const updateTooltipPosition = useCallback(() => {
+    const icon = iconRef.current;
+    if (!icon) {
+      return;
+    }
+
+    const rect = icon.getBoundingClientRect();
+    const tooltipWidth = tooltipRef.current?.offsetWidth ?? 220;
+    const tooltipHeight = tooltipRef.current?.offsetHeight ?? 80;
+    const spacing = 8;
+    const viewportPadding = 8;
+
+    const maxLeft = Math.max(
+      viewportPadding,
+      window.innerWidth - tooltipWidth - viewportPadding,
+    );
+    const left = Math.max(viewportPadding, Math.min(rect.left, maxLeft));
+
+    const fitsAbove = rect.top - spacing - tooltipHeight >= viewportPadding;
+    const fitsBelow =
+      rect.bottom + spacing + tooltipHeight <=
+      window.innerHeight - viewportPadding;
+    const nextPlacement = fitsAbove || !fitsBelow ? "above" : "below";
+    const top =
+      nextPlacement === "above" ? rect.top - spacing : rect.bottom + spacing;
+
+    setPlacement(nextPlacement);
+    setPosition({ left, top });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    updateTooltipPosition();
+    const id = window.requestAnimationFrame(updateTooltipPosition);
+
+    const handleReposition = () => {
+      updateTooltipPosition();
+    };
+
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
+  }, [visible, updateTooltipPosition]);
+
+  return (
+    <span
+      ref={iconRef}
+      className="adv-info-icon"
+      tabIndex={0}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      onFocus={() => setVisible(true)}
+      onBlur={() => setVisible(false)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setVisible(false);
+        }
+      }}
+      aria-label={text}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle
+          cx="8"
+          cy="8"
+          r="6.5"
+          stroke="currentColor"
+          strokeWidth="1.25"
+        />
+        <circle cx="8" cy="4.75" r="0.75" fill="currentColor" />
+        <line
+          x1="8"
+          y1="7"
+          x2="8"
+          y2="11.5"
+          stroke="currentColor"
+          strokeWidth="1.25"
+          strokeLinecap="round"
+        />
+      </svg>
+      {visible &&
+        createPortal(
+          <span
+            ref={tooltipRef}
+            className="adv-info-tooltip adv-info-tooltip--portal"
+            data-placement={placement}
+            role="tooltip"
+            style={
+              {
+                left: `${position.left}px`,
+                top: `${position.top}px`,
+                transform:
+                  placement === "above" ? "translateY(-100%)" : "none",
+              } as CSSProperties
+            }
+          >
+            {text}
+          </span>,
+          document.body,
+        )}
+    </span>
+  );
 }
