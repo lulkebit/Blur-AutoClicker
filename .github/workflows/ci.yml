@@ -95,9 +95,30 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'Windows'
         run: npm exec tauri build -- --config src-tauri/tauri.windows.release.conf.json --ci
 
-      - name: Build macOS DMG
+      - name: Build macOS app bundle
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'macOS'
         run: npm exec tauri build -- --config src-tauri/tauri.macos.release.conf.json --ci
+
+      - name: Re-sign and package macOS app bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APP_PATH="src-tauri/target/release/bundle/macos/BlurAutoClicker.app"
+          if [[ ! -d "$APP_PATH" ]]; then
+            echo "Expected macOS app bundle at $APP_PATH, but it was not found." >&2
+            exit 1
+          fi
+
+          version="$(node -p "require('./package.json').version")"
+
+          codesign --force --deep --sign - "$APP_PATH"
+
+          mkdir -p release-assets
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$APP_PATH" \
+            "release-assets/BlurAutoClicker-${version}-macOS.zip"
 
       - name: Upload Windows release asset
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && runner.os == 'Windows'
@@ -112,7 +133,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-assets-macos
-          path: src-tauri/target/release/bundle/dmg/*.dmg
+          path: release-assets/*.zip
           if-no-files-found: error
 
   release:
@@ -229,7 +250,7 @@ jobs:
           body_path: ${{ steps.changelog.outputs.notes_path }}
           files: |
             release-assets/*.exe
-            release-assets/*.dmg
+            release-assets/*.zip
           fail_on_unmatched_files: true
           target_commitish: ${{ github.sha }}
 

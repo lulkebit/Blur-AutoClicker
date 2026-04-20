@@ -57,10 +57,16 @@ Windows:
 By default, the program is stored in `%localappdata%/BlurAutoClicker/BlurAutoClicker.exe`.
 
 macOS:
-1. download the `.dmg` from releases
-2. drag `BlurAutoClicker.app` into `Applications`
-3. launch the app once
+1. download the `BlurAutoClicker-<version>-macOS.zip` from releases
+2. unzip it (macOS usually does this automatically in the Downloads folder) and drag `BlurAutoClicker.app` into `Applications`
+3. the first time you launch it, right-click `BlurAutoClicker.app` → **Open** and confirm **Open** in the dialog. This is only needed once because the build is not signed with a paid Apple Developer ID.
 4. if macOS blocks automated clicks, allow the app under `System Settings > Privacy & Security > Accessibility`
+
+If macOS still shows a *"…is damaged and can't be opened"* error (can happen on newer macOS versions), remove the quarantine flag once from Terminal:
+
+```bash
+xattr -cr /Applications/BlurAutoClicker.app
+```
 
 Config and stats are stored in the platform app data directory:
 - Windows: `%appdata%/BlurAutoClicker`
