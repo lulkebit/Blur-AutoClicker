@@ -205,7 +205,6 @@ export function InfoIcon({ text }: { text: string }) {
       return;
     }
 
-    updateTooltipPosition();
     const id = window.requestAnimationFrame(updateTooltipPosition);
 
     const handleReposition = () => {
