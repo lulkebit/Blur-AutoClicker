@@ -45,3 +45,4 @@ lerna-debug.log*
 .VSCodeCounter/
 *.csv
 .continue
+.claude/

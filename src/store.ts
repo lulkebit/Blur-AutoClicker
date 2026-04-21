@@ -5,6 +5,12 @@ const store = new LazyStore("settings.json");
 
 export const APP_VERSION = await getVersion();
 
+const IS_MAC = /mac|iphone|ipad|ipod/i.test(
+  `${navigator.userAgent} ${navigator.platform}`,
+);
+
+const DEFAULT_HOTKEY = IS_MAC ? "super+y" : "ctrl+y";
+
 export type SavedPanel = "simple" | "advanced";
 export type ExplanationMode = "off" | "text";
 export type Theme = "dark" | "light";
@@ -71,7 +77,7 @@ export const DEFAULT_SETTINGS: Settings = {
   clickSpeed: 25,
   clickInterval: "s",
   mouseButton: "Left",
-  hotkey: "ctrl+y",
+  hotkey: DEFAULT_HOTKEY,
   mode: "Toggle",
   dutyCycleEnabled: true,
   dutyCycle: 45,

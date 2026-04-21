@@ -44,6 +44,11 @@ pub struct ClickerSettings {
     pub strict_hotkey_modifiers: bool,
 }
 
+#[cfg(target_os = "macos")]
+const DEFAULT_HOTKEY: &str = "super+y";
+#[cfg(not(target_os = "macos"))]
+const DEFAULT_HOTKEY: &str = "ctrl+y";
+
 impl Default for ClickerSettings {
     fn default() -> Self {
         Self {
@@ -52,7 +57,7 @@ impl Default for ClickerSettings {
             click_interval: "s".to_string(),
             mouse_button: "Left".to_string(),
             mode: "Toggle".to_string(),
-            hotkey: "ctrl+y".to_string(),
+            hotkey: DEFAULT_HOTKEY.to_string(),
             duty_cycle_enabled: true,
             duty_cycle: 45.0,
             speed_variation_enabled: true,
