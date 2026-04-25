@@ -118,6 +118,10 @@ pub fn start_clicker_inner(app: &AppHandle) -> Result<ClickerStatusPayload, Stri
 
     std::thread::spawn(move || {
         let outcome = engine_start(config, control.clone());
+
+        print_run_stats(outcome.click_count, outcome.elapsed_secs, outcome.avg_cpu);
+        record_run(outcome.click_count, outcome.elapsed_secs, outcome.avg_cpu);
+
         if !control.is_current_generation() {
             return;
         }
@@ -125,10 +129,6 @@ pub fn start_clicker_inner(app: &AppHandle) -> Result<ClickerStatusPayload, Stri
         let state = app_handle.state::<ClickerState>();
         state.running.store(false, Ordering::SeqCst);
         state.active_sequence_index.store(-1, Ordering::SeqCst);
-
-        print_run_stats(outcome.click_count, outcome.elapsed_secs, outcome.avg_cpu);
-
-        record_run(outcome.click_count, outcome.elapsed_secs, outcome.avg_cpu);
 
         *state.stop_reason.lock().unwrap() = Some(outcome.stop_reason.clone());
         *state.last_error.lock().unwrap() = None;
@@ -414,7 +414,8 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
             }
         }
 
-        let per_tick_clicks = batch_size.saturating_mul(if config.double_click_enabled { 2 } else { 1 });
+        let per_tick_clicks =
+            batch_size.saturating_mul(if config.double_click_enabled { 2 } else { 1 });
         let requested_clicks = if config.sequence_enabled && !config.sequence_points.is_empty() {
             sequence_clicks_remaining.min(per_tick_clicks)
         } else {
