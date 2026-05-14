@@ -85,6 +85,16 @@ impl HotkeyBinding {
     }
 }
 
+pub fn keyboard_key_code_from_binding(binding: &HotkeyBinding) -> Option<u16> {
+    keyboard_key_token_to_vk(&binding.key_token)
+}
+
+pub fn parse_keyboard_key_code(key: &str) -> Result<u16, String> {
+    let (_, key_token) = parse_hotkey_main_key(key, key)?;
+    keyboard_key_token_to_vk(&key_token)
+        .ok_or_else(|| format!("'{}' is not a keyboard key", key.trim()))
+}
+
 pub fn register_hotkey_inner(app: &AppHandle, hotkey: String) -> Result<String, String> {
     if hotkey.trim().is_empty() {
         let previous = {
@@ -658,6 +668,81 @@ fn digit_code(ch: u8) -> Code {
         b'8' => Code::Digit8,
         b'9' => Code::Digit9,
         _ => unreachable!(),
+    }
+}
+
+fn keyboard_key_token_to_vk(token: &str) -> Option<u16> {
+    let lower = token.trim().to_ascii_lowercase();
+
+    match lower.as_str() {
+        "backspace" => Some(0x08),
+        "tab" => Some(0x09),
+        "enter" | "numpadenter" => Some(0x0D),
+        "pause" => Some(0x13),
+        "capslock" => Some(0x14),
+        "escape" => Some(0x1B),
+        "space" => Some(0x20),
+        "pageup" => Some(0x21),
+        "pagedown" => Some(0x22),
+        "end" => Some(0x23),
+        "home" => Some(0x24),
+        "left" => Some(0x25),
+        "up" => Some(0x26),
+        "right" => Some(0x27),
+        "down" => Some(0x28),
+        "printscreen" => Some(0x2C),
+        "insert" => Some(0x2D),
+        "delete" => Some(0x2E),
+        "menu" => Some(0x5D),
+        "numlock" => Some(0x90),
+        "scrolllock" => Some(0x91),
+        "numpadadd" => Some(0x6B),
+        "numpadsubtract" => Some(0x6D),
+        "numpadmultiply" => Some(0x6A),
+        "numpaddivide" => Some(0x6F),
+        "numpaddecimal" => Some(0x6E),
+        ";" => Some(0xBA),
+        "=" => Some(0xBB),
+        "," => Some(0xBC),
+        "-" => Some(0xBD),
+        "." => Some(0xBE),
+        "/" => Some(0xBF),
+        "`" => Some(0xC0),
+        "[" => Some(0xDB),
+        "\\" => Some(0xDC),
+        "]" => Some(0xDD),
+        "'" => Some(0xDE),
+        "intlbackslash" => Some(0xE2),
+        _ => {
+            if let Some(digit) = lower.strip_prefix("numpad") {
+                if digit.len() == 1 {
+                    let ch = digit.as_bytes()[0];
+                    if ch.is_ascii_digit() {
+                        return Some(0x60 + u16::from(ch - b'0'));
+                    }
+                }
+            }
+
+            if lower.starts_with('f') && lower.len() <= 3 {
+                if let Ok(number) = lower[1..].parse::<u16>() {
+                    if (1..=24).contains(&number) {
+                        return Some(0x70 + number - 1);
+                    }
+                }
+            }
+
+            if lower.len() == 1 {
+                let ch = lower.as_bytes()[0];
+                if ch.is_ascii_lowercase() {
+                    return Some(u16::from(ch.to_ascii_uppercase()));
+                }
+                if ch.is_ascii_digit() {
+                    return Some(u16::from(ch));
+                }
+            }
+
+            None
+        }
     }
 }
 

@@ -12,6 +12,7 @@ use crate::ClickerStatusPayload;
 use crate::STATUS_EVENT;
 
 use super::failsafe::should_stop_for_failsafe;
+use super::keyboard::{is_alphabetic_vk, send_key_presses};
 use super::mouse::{
     get_button_flags, get_cursor_pos, move_mouse, send_clicks, smooth_move, VirtualScreenRect,
 };
@@ -244,8 +245,32 @@ pub fn start_clicker_inner(app: &AppHandle) -> Result<ClickerStatusPayload, Stri
 
     let settings = state.settings.lock().unwrap().clone();
     let config = build_config(&settings)?;
+
+    // Prevent feedback loop: keyboard key must not match a modifier-free hotkey
+    if config.input_type == 1 && config.key_code > 0 {
+        let hotkey_binding = state.registered_hotkey.lock().unwrap().clone();
+        if let Some(binding) = hotkey_binding {
+            if crate::hotkeys::keyboard_key_code_from_binding(&binding) == Some(config.key_code) {
+                let conflicts_with_plain_key =
+                    !binding.ctrl && !binding.alt && !binding.shift && !binding.super_key;
+                let conflicts_with_uppercase_key = config.keyboard_uppercase
+                    && binding.shift
+                    && !binding.ctrl
+                    && !binding.alt
+                    && !binding.super_key;
+
+                if conflicts_with_plain_key || conflicts_with_uppercase_key {
+                    return Err(String::from(
+                        "The auto-press key conflicts with your hotkey. Use a modifier on the hotkey (e.g. Ctrl+key) or pick a different key.",
+                    ));
+                }
+            }
+        }
+    }
+
     if config.use_sequence() {
         state.active_sequence_index.store(0, Ordering::SeqCst);
+        state.active_sequence_tick.store(0, Ordering::SeqCst);
     }
     let expected_generation = state.run_generation.fetch_add(1, Ordering::SeqCst) + 1;
     state.running.store(true, Ordering::SeqCst);
@@ -265,6 +290,7 @@ pub fn start_clicker_inner(app: &AppHandle) -> Result<ClickerStatusPayload, Stri
         let state = app_handle.state::<ClickerState>();
         state.running.store(false, Ordering::SeqCst);
         state.active_sequence_index.store(-1, Ordering::SeqCst);
+        state.active_sequence_tick.store(0, Ordering::SeqCst);
 
         *state.stop_reason.lock().unwrap() = Some(outcome.stop_reason.clone());
         *state.last_error.lock().unwrap() = None;
@@ -283,6 +309,7 @@ pub fn stop_clicker_inner(
     let state = app.state::<ClickerState>();
     state.running.store(false, Ordering::SeqCst);
     state.active_sequence_index.store(-1, Ordering::SeqCst);
+    state.active_sequence_tick.store(0, Ordering::SeqCst);
     state.run_generation.fetch_add(1, Ordering::SeqCst);
     if let Some(reason) = stop_reason {
         *state.stop_reason.lock().unwrap() = Some(reason);
@@ -336,6 +363,29 @@ pub fn build_config(settings: &ClickerSettings) -> Result<ClickerConfig, String>
         _ => 1,
     };
 
+    let is_keyboard = settings.input_type == "keyboard";
+    #[cfg(all(not(target_os = "windows"), not(test)))]
+    if is_keyboard {
+        return Err(String::from(
+            "Keyboard auto-press is currently only supported on Windows",
+        ));
+    }
+
+    let key_code = if is_keyboard && !settings.keyboard_key.is_empty() {
+        match crate::hotkeys::parse_keyboard_key_code(&settings.keyboard_key) {
+            Ok(vk) => vk,
+            Err(_) => return Err(format!("Unknown keyboard key: '{}'", settings.keyboard_key)),
+        }
+    } else {
+        0u16
+    };
+
+    if is_keyboard && key_code == 0 {
+        return Err(String::from("Keyboard mode requires a key to be selected"));
+    }
+    let keyboard_uppercase =
+        is_keyboard && settings.keyboard_key_case == "upper" && is_alphabetic_vk(key_code);
+
     let time_limit_secs = if settings.time_limit_enabled {
         Some(match settings.time_limit_unit.as_str() {
             "m" => settings.time_limit * 60.0,
@@ -374,12 +424,12 @@ pub fn build_config(settings: &ClickerSettings) -> Result<ClickerConfig, String>
             .map(|point| SequenceTarget {
                 x: point.x,
                 y: point.y,
-                clicks: usize::from(point.clicks.clamp(1, 1000)),
+                clicks: point.clicks.clamp(1, 100000) as usize,
             })
             .collect(),
-        offset: 0.0,
-        offset_chance: 0.0,
-        smoothing: 0,
+        offset: 2.0,
+        offset_chance: 21.6,
+        smoothing: 1,
         custom_stop_zone_enabled: settings.custom_stop_zone_enabled,
         custom_stop_zone: VirtualScreenRect::new(
             settings.custom_stop_zone_x,
@@ -397,6 +447,9 @@ pub fn build_config(settings: &ClickerSettings) -> Result<ClickerConfig, String>
         edge_stop_right: settings.edge_stop_right,
         edge_stop_bottom: settings.edge_stop_bottom,
         edge_stop_left: settings.edge_stop_left,
+        input_type: if is_keyboard { 1 } else { 0 },
+        key_code,
+        keyboard_uppercase,
     })
 }
 
@@ -405,6 +458,7 @@ pub fn current_status(app: &AppHandle) -> ClickerStatusPayload {
     let last_error = state.last_error.lock().unwrap().clone();
     let stop_reason = state.stop_reason.lock().unwrap().clone();
     let active_sequence_index = state.active_sequence_index.load(Ordering::SeqCst);
+    let active_sequence_tick = state.active_sequence_tick.load(Ordering::SeqCst);
 
     ClickerStatusPayload {
         running: state.running.load(Ordering::SeqCst),
@@ -416,6 +470,7 @@ pub fn current_status(app: &AppHandle) -> ClickerStatusPayload {
         } else {
             None
         },
+        active_sequence_tick,
     }
 }
 
@@ -455,7 +510,12 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
 
     let mut rng = SmallRng::new();
     let mut click_count: i64 = 0;
-    let (down_flag, up_flag) = get_button_flags(config.button);
+    let is_keyboard = config.input_type == 1 && config.key_code > 0;
+    let mouse_buttons = if is_keyboard {
+        None
+    } else {
+        Some(get_button_flags(config.button))
+    };
     let cps = if config.interval_secs > 0.0 {
         1.0 / config.interval_secs
     } else {
@@ -467,8 +527,7 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
         1usize
     };
 
-    let batch_interval = config.interval_secs * batch_size as f64;
-    let has_position = config.sequence_enabled;
+    let has_position = config.use_sequence();
     let use_smoothing = config.smoothing == 1 && cps < 50.0;
 
     let mut sequence_index = 0usize;
@@ -481,11 +540,11 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
     };
     let mut next_batch_time = Instant::now();
     let mut stop_reason = String::from("Stopped");
-
-    println!("Clicking at: {}, {}", target_x, target_y);
+    let mut moved_sequence_index: Option<usize> = None;
 
     if has_position {
         move_mouse(target_x, target_y);
+        moved_sequence_index = Some(sequence_index);
     }
 
     if config.use_sequence() {
@@ -493,6 +552,7 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
         state
             .active_sequence_index
             .store(sequence_index as i64, Ordering::SeqCst);
+        state.active_sequence_tick.fetch_add(1, Ordering::SeqCst);
         emit_status(&control.app);
     }
 
@@ -514,11 +574,9 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
 
         cycle_target = current_cycle_target(&config, sequence_index);
 
-        let cycle_duration_base = batch_interval;
-
         if has_position {
             let (base_x, base_y) = (cycle_target.x, cycle_target.y);
-            if config.offset_chance <= 0.0 || rng.next_f64() * 100.0 <= config.offset_chance {
+            if config.offset_chance > 0.0 && rng.next_f64() * 100.0 <= config.offset_chance {
                 let angle = rng.next_f64() * 2.0 * PI;
                 let radius = rng.next_f64().sqrt() * config.offset;
                 target_x = (base_x as f64 + radius * angle.cos()) as i32;
@@ -528,22 +586,27 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
                 target_y = base_y;
             }
 
-            if use_smoothing {
+            let should_move_to_target =
+                moved_sequence_index != Some(sequence_index) || config.offset > 0.0;
+
+            if use_smoothing && should_move_to_target {
                 let (cur_x, cur_y) = get_cursor_pos();
                 if cur_x != target_x || cur_y != target_y {
                     let smooth_dur =
-                        ((cycle_duration_base * (0.2 + rng.next_f64() * 0.4)) * 1000.0) as u64;
+                        ((config.interval_secs * (0.2 + rng.next_f64() * 0.4)) * 1000.0) as u64;
                     smooth_move(
                         cur_x,
                         cur_y,
                         target_x,
                         target_y,
-                        smooth_dur.clamp(15, 200),
+                        smooth_dur.clamp(1, 200),
                         &mut rng,
                     );
                 }
-            } else {
+                moved_sequence_index = Some(sequence_index);
+            } else if should_move_to_target {
                 move_mouse(target_x, target_y);
+                moved_sequence_index = Some(sequence_index);
             }
         }
 
@@ -554,15 +617,6 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
         } else {
             per_tick_clicks
         };
-        let batch_duration = if config.variation > 0.0 {
-            let std_dev = cycle_duration_base * (config.variation / 100.0);
-            rng.next_gaussian(cycle_duration_base, std_dev)
-        } else {
-            cycle_duration_base
-        };
-        let hold_ms = (config.interval_secs * (config.duty.max(0.0) / 100.0) * 1000.0) as u32;
-
-        next_batch_time += Duration::from_secs_f64(batch_duration.max(0.001));
 
         let remaining_clicks = if config.limit > 0 {
             (config.limit as i64 - click_count).max(0) as usize
@@ -577,15 +631,38 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
             break;
         }
 
-        send_clicks(
-            down_flag,
-            up_flag,
-            clicks_this_cycle,
-            hold_ms,
-            config.double_click_enabled,
-            config.double_click_delay_ms,
-            &control,
-        );
+        let variation_ratio = config.variation / 100.0;
+        let hold_factor = config.duty.max(0.0) / 100.0 * 1000.0;
+        let actual_duration_base = config.interval_secs * clicks_this_cycle as f64;
+        let batch_duration = if config.variation > 0.0 {
+            rng.next_gaussian(actual_duration_base, actual_duration_base * variation_ratio)
+        } else {
+            actual_duration_base
+        };
+        let hold_ms = (config.interval_secs * hold_factor) as u32;
+        next_batch_time += Duration::from_secs_f64(batch_duration.max(0.001));
+
+        if is_keyboard {
+            send_key_presses(
+                config.key_code,
+                clicks_this_cycle,
+                hold_ms,
+                config.keyboard_uppercase,
+                config.double_click_enabled,
+                config.double_click_delay_ms,
+                &control,
+            );
+        } else if let Some((down_flag, up_flag)) = mouse_buttons {
+            send_clicks(
+                down_flag,
+                up_flag,
+                clicks_this_cycle,
+                hold_ms,
+                config.double_click_enabled,
+                config.double_click_delay_ms,
+                &control,
+            );
+        }
 
         if !control.is_active() {
             break;
@@ -608,6 +685,7 @@ pub fn start_clicker(config: ClickerConfig, control: RunControl) -> RunOutcome {
                 state
                     .active_sequence_index
                     .store(sequence_index as i64, Ordering::SeqCst);
+                state.active_sequence_tick.fetch_add(1, Ordering::SeqCst);
                 emit_status(&control.app);
             }
         }
@@ -691,6 +769,9 @@ mod tests {
             edge_stop_right: 40,
             edge_stop_bottom: 40,
             edge_stop_left: 40,
+            input_type: 0,
+            key_code: 0,
+            keyboard_uppercase: false,
         }
     }
 
@@ -763,5 +844,22 @@ mod tests {
                 clicks: 1
             }
         );
+    }
+
+    #[test]
+    fn keyboard_uppercase_is_enabled_only_for_letter_keys() {
+        let mut settings = sample_settings();
+        settings.input_type = "keyboard".to_string();
+        settings.keyboard_key = "a".to_string();
+        settings.keyboard_key_case = "upper".to_string();
+
+        let config = build_config(&settings).expect("letter key should parse");
+        assert_eq!(config.key_code, b'A' as u16);
+        assert!(config.keyboard_uppercase);
+
+        settings.keyboard_key = "1".to_string();
+        let config = build_config(&settings).expect("digit key should parse");
+        assert_eq!(config.key_code, b'1' as u16);
+        assert!(!config.keyboard_uppercase);
     }
 }

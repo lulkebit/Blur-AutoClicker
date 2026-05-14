@@ -82,11 +82,45 @@ input[type="number"]::-webkit-outer-spin-button {
   overflow: hidden;
 }
 
+.adv-columns--tall {
+  display: block;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-gutter: stable;
+}
+
+.adv-columns--tall::-webkit-scrollbar {
+  width: 0.375rem;
+  background: var(--bg-elevated);
+  border-radius: 0.5rem;
+}
+
+.adv-columns--tall::-webkit-scrollbar-thumb {
+  background: var(--text-dim);
+  border-radius: 0.25rem;
+}
+
+.adv-columns--tall::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
 .adv-col {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
+}
+
+.adv-col--sequence {
+  flex: 0 0 25rem;
+}
+
+.adv-columns--tall .adv-col {
+  min-height: auto;
+}
+
+.adv-columns--tall .adv-sectioncontainer {
+  flex: none;
 }
 
 /* Card */
@@ -152,11 +186,6 @@ input[type="number"]::-webkit-outer-spin-button {
   flex-wrap: wrap;
 }
 
-.adv-axis-label {
-  margin-left: 0;
-  margin-right: 0.25rem;
-}
-
 .adv-card-title {
   font-family: 'DMSans', sans-serif;
   font-size: 0.875rem;
@@ -191,6 +220,19 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.adv-target-row {
+  min-width: 0;
+}
+
+.adv-target-controls {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+  min-width: 0;
 }
 
 .adv-label {
@@ -248,6 +290,81 @@ input[type="number"]::-webkit-outer-spin-button {
   font-weight: var(--font-weight-md);
   color: var(--text-primary);
   cursor: pointer;
+}
+
+.adv-input-type-group {
+  flex: 0 0 auto;
+}
+
+.adv-icon-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 2.375rem;
+  min-width: 2.375rem;
+  width: 2.375rem;
+  padding: 0;
+}
+
+.adv-input-type-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.adv-target-mouse-buttons {
+  flex: 0 0 auto;
+}
+
+.adv-key-target-box {
+  width: 8.25rem;
+  min-width: 8.25rem;
+  overflow: hidden;
+}
+
+.adv-key-target-box .adv-key-input {
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  width: 0;
+  min-width: 0;
+}
+
+.adv-key-case-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  align-self: stretch;
+  border: none;
+  border-left: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'DMSans', sans-serif;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.adv-key-case-toggle--upper {
+  font-size: 1.125rem;
+}
+
+.adv-key-case-toggle--lower {
+  font-size: 0.8125rem;
+}
+
+.adv-key-input {
+  font-size: 0.9375rem;
+}
+
+.adv-key-case-toggle:hover:not(:disabled) {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.adv-key-case-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .adv-minmax {
@@ -441,6 +558,17 @@ input[type="number"]::-webkit-outer-spin-button {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  width: 25rem;
+}
+
+.adv-columns--wide .adv-sequence-card {
+  flex: 1;
+}
+
+.adv-columns--tall .adv-sequence-card {
+  width: auto;
+  height: clamp(18rem, 38vh, 24rem);
+  min-height: 18rem;
 }
 
 .adv-sequence-card .adv-disabled-container {
@@ -656,7 +784,7 @@ input[type="number"]::-webkit-outer-spin-button {
   pointer-events: none;
 }
 
-.adv-sequence-item::after {
+.adv-sequence-progress {
   content: "";
   position: absolute;
   left: 0;
@@ -675,7 +803,7 @@ input[type="number"]::-webkit-outer-spin-button {
   pointer-events: none;
 }
 
-.adv-sequence-item--active::after {
+.adv-sequence-item--active .adv-sequence-progress {
   opacity: 1;
   animation: adv-sequence-step-progress var(--sequence-step-duration) linear forwards;
   animation-timing-function: steps(var(--sequence-step-clicks), end);
@@ -691,7 +819,7 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 }
 
-.adv-sequence-item > * {
+.adv-sequence-item > :not(.adv-sequence-progress) {
   position: relative;
   z-index: 1;
 }
@@ -700,6 +828,17 @@ input[type="number"]::-webkit-outer-spin-button {
   min-width: 0;
   min-height: 26px;
   padding: 0 0.35rem;
+}
+
+.adv-sequence-coord .adv-number-sm {
+  height: 26px;
+  line-height: 26px;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.adv-sequence-position {
+  width: calc(6ch + 0.75rem);
 }
 
 .adv-stop-zone-input {

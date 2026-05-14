@@ -62,15 +62,12 @@ body:
       required: true
 
   - type: dropdown
-    id: mouse_button
+    id: button
     attributes:
-      label: Mouse button
+      label: Button
       options:
-        - Left
-        - Right
-        - Middle
-        - Multiple
-        - Not sure / N/A
+        - Mouse
+        - Keyboard
     validations:
       required: true
 
